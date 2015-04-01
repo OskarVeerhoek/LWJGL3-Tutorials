@@ -1,0 +1,38 @@
+## Eclipse
+
+.project
+.metadata
+bin/
+tmp/
+*.tmp
+*.bak
+*.swp
+*~.nib
+local.properties
+.classpath
+.settings/
+.loadpath
+.externalToolBuilders/
+*.launch
+.buildpath
+
+## IntelliJ IDEA
+
+.idea
+Youtube-Tutorials.iml
+Youtube-Tutorials.eml
+out
+src/META-INF
+.iml
+
+
+## Windows
+
+Thumbs.db
+Desktop.ini
+
+## Macintosh
+
+.DS_Store
+
+*.iml
