@@ -82,26 +82,30 @@ public class CoreOpenGL {
         indexData.flip();
     }
 
-    private static void render() {
-        // Clear the 2D contents of the window.
-        glClear(GL_COLOR_BUFFER_BIT);
+    private static void setUp() {
+        boolean glfwInitializationResult = glfwInit() == GL11.GL_TRUE;
 
-        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, 0);
+        if (glfwInitializationResult == false)
+            throw new IllegalStateException("GLFW initialization failed");
 
-        glfwSwapBuffers(windowID);
-    }
+        glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE); // Mac Modern OpenGL
+        glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE); // Mac Modern OpenGL
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3); // Modern OpenGL
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2); // Mac Modern OpenGL
 
-    private static void cleanUp() {
-        glDeleteVertexArrays(vertexArrayObject);
-        glDeleteBuffers(vertexBufferObject);
-        glDeleteBuffers(indexBufferObject);
-        glDeleteProgram(shaderProgram);
-        glfwDestroyWindow(windowID);
-        glfwTerminate();
-    }
+        windowID = glfwCreateWindow(640, 480, "Test", MemoryUtil.NULL, MemoryUtil.NULL);
 
-    private static void setUpOpenGL() {
-        GLContext.createFromCurrent();
+        if (windowID == MemoryUtil.NULL)
+            throw new IllegalStateException("GLFW window creation failed");
+
+        glfwMakeContextCurrent(windowID); // Links the OpenGL context of the window to the currrent thread
+        glfwSwapInterval(1); // Enable VSync
+        glfwShowWindow(windowID);
+
+        // If you don't add this line, you'll get the following exception:
+        //  java.lang.IllegalStateException: There is no OpenGL context current in the current thread.
+        GLContext.createFromCurrent(); // Links LWJGL to the OpenGL context
+
         glClearColor(0, 0, 0, 1);
 
         vertexArrayObject = glGenVertexArrays();
@@ -126,45 +130,37 @@ public class CoreOpenGL {
         glUseProgram(shaderProgram);
     }
 
-    private static void update() {
-        glfwPollEvents();
-    }
-
-    private static void enterGameLoop() {
+    private static void enterUpdateLoop() {
         while (glfwWindowShouldClose(windowID) == GL_FALSE) {
-            render();
-            update();
+            draw();
+            // Polls the user input. This is very important, because it prevents your application from becoming unresponsive
+            glfwPollEvents();
         }
     }
 
-    private static void setUpGLFW() {
-        boolean glfwInitializationResult = glfwInit() == GL11.GL_TRUE;
+    private static void draw() {
+        glClear(GL_COLOR_BUFFER_BIT);
 
-        if (glfwInitializationResult == false)
-            throw new IllegalStateException("GLFW initialization failed");
+        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, 0);
 
-        glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE); // Mac Modern OpenGL
-        glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE); // Mac Modern OpenGL
-        glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3); // Modern OpenGL
-        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2); // Mac Modern OpenGL
+        glfwSwapBuffers(windowID);
+    }
 
-        windowID = glfwCreateWindow(640, 480, "Test", MemoryUtil.NULL, MemoryUtil.NULL);
-
-        if (windowID == MemoryUtil.NULL)
-            throw new IllegalStateException("GLFW window creation failed");
-
-        glfwMakeContextCurrent(windowID); // Links the OpenGL context of the window to the currrent thread
-        glfwSwapInterval(1); // Enable VSync
-        glfwShowWindow(windowID);
+    private static void cleanUp() {
+        glDeleteVertexArrays(vertexArrayObject);
+        glDeleteBuffers(vertexBufferObject);
+        glDeleteBuffers(indexBufferObject);
+        glDeleteProgram(shaderProgram);
+        glfwDestroyWindow(windowID);
+        glfwTerminate();
     }
 
     public static void main(String[] args) {
         errorCallback = Callbacks.errorCallbackPrint(System.err);
         glfwSetErrorCallback(errorCallback);
 
-        setUpGLFW();
-        setUpOpenGL();
-        enterGameLoop();
+        setUp();
+        enterUpdateLoop();
         cleanUp();
     }
 
