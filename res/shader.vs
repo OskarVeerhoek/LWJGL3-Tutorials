@@ -1,7 +1,9 @@
 #version 330 core
+// If this version is not supported, try #version 150 core
 
-layout(location = 0) in vec4 vertex_position;
-layout(location = 1) in vec4 vertex_colour;
+layout(location = 0) in vec4 vertex_colour;
+layout(location = 1) in vec4 vertex_position;
+// remove layout(..) if the version is lower than #version 330 core
 
 smooth out vec4 fragment_colour;
 

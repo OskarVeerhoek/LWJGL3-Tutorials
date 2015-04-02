@@ -53,7 +53,7 @@ import static org.lwjgl.opengl.GL30.*;
  */
 public class CoreOpenGL {
 
-    private static final int VERTEX_POSITION = 0, COLOUR_POSITION = 1;
+    private static final int VERTEX_POSITION = 1, VERTEX_COLOUR = 0;
     private static GLFWErrorCallback errorCallback;
     private static long windowID;
     private static int vertexArrayObject;
@@ -120,14 +120,15 @@ public class CoreOpenGL {
         glBufferData(GL_ARRAY_BUFFER, vertexData, GL_STATIC_DRAW);
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, indexData, GL_STATIC_DRAW);
 
-        glEnableVertexAttribArray(VERTEX_POSITION);
-        glEnableVertexAttribArray(COLOUR_POSITION);
-
-        glVertexAttribPointer(VERTEX_POSITION, 2, GL_DOUBLE, false, 0, 0);
-        glVertexAttribPointer(COLOUR_POSITION, 3, GL_DOUBLE, false, 0, 8 * 4 * 2);
-
         shaderProgram = ShaderLoader.loadShaderPair("res/shader.vs", "res/shader.fs");
         glUseProgram(shaderProgram);
+
+        glEnableVertexAttribArray(VERTEX_POSITION);
+        glEnableVertexAttribArray(VERTEX_COLOUR);
+
+        glVertexAttribPointer(VERTEX_POSITION, 2, GL_DOUBLE, false, 0, 0);
+        glVertexAttribPointer(VERTEX_COLOUR, 3, GL_DOUBLE, false, 0, 8 * 4 * 2);
+
     }
 
     private static void enterUpdateLoop() {
