@@ -44,7 +44,9 @@ import static org.lwjgl.opengl.GL11.*;
  */
 public class Rendering {
 
+    // The GLFW error callback: this tells GLFW what to do if things go wrong
     private static GLFWErrorCallback errorCallback;
+    // The handle of the GLFW window
     private static long windowID;
 
     private static void setUp() {
