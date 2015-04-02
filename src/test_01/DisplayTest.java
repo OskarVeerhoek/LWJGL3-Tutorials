@@ -37,8 +37,6 @@ import org.lwjgl.system.MemoryUtil;
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.opengl.GL11.*;
 
-// Easy access to all the GLFW and OpenGL methods and constants (otherwise you would have to write GLFW.glfw.. every time)
-
 /**
  * Code is based on the following sample code: http://www.lwjgl.org/guide
  */
