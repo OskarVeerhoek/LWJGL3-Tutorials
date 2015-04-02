@@ -40,7 +40,8 @@ import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.opengl.GL11.*;
 
 /**
- * Put description here.
+ * Press space to view fully coloured triangle
+ * Move mouse to change triangle colour
  *
  * @author Oskar Veerhoek
  */
@@ -48,13 +49,58 @@ public class Input {
 
     private static GLFWErrorCallback errorCallback;
     private static long windowID;
-    private static int windowWidth = 640, windowHeight = 480;
 
     private static boolean inputEnabled = true;
     private static int mouseX = 0, mouseY = 0;
     private static GLFWCursorPosCallback cursorCallback;
 
-    private static void render() {
+    private static void setUp() {
+        // Initialize GLFW:
+        int glfwInitializationResult = glfwInit(); // initialize GLFW and store the result (pass or fail)
+        if (glfwInitializationResult == GL_FALSE)
+            throw new IllegalStateException("GLFW initialization failed");
+
+        // Configure the GLFW window
+        windowID = glfwCreateWindow(
+                640, 480,   // Width and height of the drawing canvas in pixels
+                "Simple Mouse/Keyboard Input",     // Title of the window
+                MemoryUtil.NULL, // Monitor ID to use for fullscreen mode, or NULL to use windowed mode (LWJGL JavaDoc)
+                MemoryUtil.NULL); // Window to share resources with, or NULL to not share resources (LWJGL JavaDoc)
+
+        if (windowID == MemoryUtil.NULL)
+            throw new IllegalStateException("GLFW window creation failed");
+
+        glfwMakeContextCurrent(windowID); // Links the OpenGL context of the window to the current thread (GLFW_NO_CURRENT_CONTEXT error)
+        glfwSwapInterval(1); // Enable VSync, which effective caps the frame-rate of the application to 60 frames-per-second
+        glfwShowWindow(windowID);
+        glfwSetCursorPosCallback(windowID, cursorCallback = new GLFWCursorPosCallback() {
+
+            @Override
+            public void invoke(long window, double xpos, double ypos) {
+                mouseX = (int) xpos;
+                mouseY = (int) ypos;
+            }
+        });
+
+
+        // If you don't add this line, you'll get the following exception:
+        //  java.lang.IllegalStateException: There is no OpenGL context current in the current thread.
+        GLContext.createFromCurrent(); // Links LWJGL to the OpenGL context
+
+        // Set the background colour of OpenGL. Everything will be reset to this color once you call glClear(GL_COLOR_BUFFER_BIT).
+        glClearColor(0.2f, 0.2f, 0.2f, 1);
+    }
+
+    private static void enterUpdateLoop() {
+        while (glfwWindowShouldClose(windowID) == GL_FALSE) {
+            draw();
+            input();
+            // Polls the user input. This is very important, because it prevents your application from becoming unresponsive
+            glfwPollEvents();
+        }
+    }
+
+    private static void draw() {
         glClear(GL_COLOR_BUFFER_BIT);
 
         glBegin(GL_TRIANGLES);
@@ -81,7 +127,8 @@ public class Input {
 
         glEnd();
 
-
+        // Swaps the front and back framebuffers, this is a very technical process which you don't necessarily
+        // need to understand. You can simply see this method as updating the window contents.
         glfwSwapBuffers(windowID);
     }
 
@@ -99,55 +146,12 @@ public class Input {
         glfwTerminate();
     }
 
-    private static void setUpOpenGL() {
-        GLContext.createFromCurrent();
-        glClearColor(0.2f, 0.2f, 0.2f, 1);
-    }
-
-    private static void update() {
-        glfwPollEvents();
-    }
-
-    private static void enterGameLoop() {
-        while (glfwWindowShouldClose(windowID) == GL_FALSE) {
-            render();
-            input();
-            update();
-        }
-    }
-
-    private static void setUpGLFW() {
-        boolean glfwInitializationResult = glfwInit() == GL11.GL_TRUE;
-
-        if (glfwInitializationResult == false)
-            throw new IllegalStateException("GLFW initialization failed");
-
-        windowID = glfwCreateWindow(windowWidth, windowHeight, "Test", MemoryUtil.NULL, MemoryUtil.NULL);
-
-        if (windowID == MemoryUtil.NULL)
-            throw new IllegalStateException("GLFW window creation failed");
-
-        glfwMakeContextCurrent(windowID); // Links the OpenGL context of the window to the currrent thread
-        glfwSwapInterval(1); // Enable VSync
-        glfwShowWindow(windowID);
-
-        glfwSetCursorPosCallback(windowID, cursorCallback = new GLFWCursorPosCallback() {
-
-            @Override
-            public void invoke(long window, double xpos, double ypos) {
-                mouseX = (int) xpos;
-                mouseY = (int) ypos;
-            }
-        });
-    }
-
     public static void main(String[] args) {
         errorCallback = Callbacks.errorCallbackPrint(System.err);
         glfwSetErrorCallback(errorCallback);
 
-        setUpGLFW();
-        setUpOpenGL();
-        enterGameLoop();
+        setUp();
+        enterUpdateLoop();
         cleanUp();
     }
 

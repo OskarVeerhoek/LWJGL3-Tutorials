@@ -58,10 +58,6 @@ public class Textures {
     private static ByteBuffer textureData;
 
     private static void setUp() {
-        // Set the error handling code: all GLFW errors will be printed to the system error stream (just like println)
-        errorCallback = Callbacks.errorCallbackPrint(System.err);
-        glfwSetErrorCallback(errorCallback);
-
         // Initialize GLFW:
         int glfwInitializationResult = glfwInit(); // initialize GLFW and store the result (pass or fail)
         if (glfwInitializationResult == GL_FALSE)
