@@ -73,6 +73,10 @@ public class Input {
         glfwMakeContextCurrent(windowID); // Links the OpenGL context of the window to the current thread (GLFW_NO_CURRENT_CONTEXT error)
         glfwSwapInterval(1); // Enable VSync, which effective caps the frame-rate of the application to 60 frames-per-second
         glfwShowWindow(windowID);
+
+        // There are two types of input in GLFW: polled input and callback input
+
+        // This is an example of callback input: we set up code that will run if the callback is triggered
         glfwSetCursorPosCallback(windowID, cursorCallback = new GLFWCursorPosCallback() {
 
             @Override
@@ -133,6 +137,7 @@ public class Input {
     }
 
     private static void input() {
+        // This is an example of polled input: we check whether a key is being pressed
         if (glfwGetKey(windowID, GLFW_KEY_SPACE) == GLFW_PRESS) {
             inputEnabled = false;
         } else {

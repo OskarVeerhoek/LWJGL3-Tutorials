@@ -53,29 +53,40 @@ import static org.lwjgl.opengl.GL30.*;
  */
 public class CoreOpenGL {
 
+    // The indices of the vertex position and colour attributes, we use these attributes in the vertex shader
     private static final int VERTEX_POSITION = 1, VERTEX_COLOUR = 0;
+    // The error callback function for GLFW
     private static GLFWErrorCallback errorCallback;
+    // The window handle
     private static long windowID;
+    // The Vertex Array Object (VAO):  stores the of bindings between Vertex Attributes and vertex data
     private static int vertexArrayObject;
+    // The Vertex Buffer Object (VBO): stores vertex position and colour data
     private static int vertexBufferObject;
+    // The Index Buffer Object (IBO): stores the indices of the data in the VBO, used by glDrawElements
     private static int indexBufferObject;
+    // The OpenGL shader program handle
     private static int shaderProgram;
+    // In LWJGL we store vertex and index data using Buffers, because they most resemble C/C++ data arrays
     private static DoubleBuffer vertexData = BufferUtils.createDoubleBuffer(20);
     private static ShortBuffer indexData = BufferUtils.createShortBuffer(6);
 
     static {
         vertexData.put(new double[]{
-                -1.0, -1.0, // 0
+                // Vertex Positions: each vertex position has two components, x, and y
+                -1.0, -1.0, // 0, visible vertices in this projection range from (-1, -1) to (+1, +1)
                 +1.0, -1.0, // 1
                 +1.0, +1.0, // 2
                 -1.0, +1.0, // 3
-                1.0, 0.0, 0.0, // 0
+                // Colours: each colour has three components, red, green and blue
+                1.0, 0.0, 0.0, // 0, colours range from 0.0 to 1.0
                 0.0, 1.0, 0.0, // 1
                 0.0, 0.0, 1.0, // 2
                 1.0, 1.0, 1.0  // 3
         });
         vertexData.flip();
         indexData.put(new short[]{
+                // Indices for the triangles: each triangle has three indices
                 0, 1, 2,
                 0, 2, 3
         });
@@ -108,25 +119,63 @@ public class CoreOpenGL {
 
         glClearColor(0, 0, 0, 1);
 
+        // >> Vertex Array Objects (VAO) are OpenGL Objects that store the
+        // >> set of bindings between Vertex Attributes and the user's source
+        // >> vertex data. (http://www.opengl.org/wiki/Vertex_Array_Object)
+        // >> glGenVertexArrays returns n vertex array object names in arrays.
+        // Create a VAO and store the handle in vertexArrayObject
         vertexArrayObject = glGenVertexArrays();
+        // >> glGenBuffers returns n buffer object names in buffers.
+        // >> No buffer objects are associated with the returned buffer object names
+        // >> until they are first bound by calling glBindBuffer.
         vertexBufferObject = glGenBuffers();
         indexBufferObject = glGenBuffers();
 
+        // >> glBindVertexArray binds the vertex array object with name array.
+        // Bind the VAO to OpenGL
         glBindVertexArray(vertexArrayObject);
-
+        // >> glBindBuffer binds a buffer object to the specified buffer binding point.
+        // >> Vertex Buffer Objects (VBOs) are Buffer Objects that are used for
+        // >> vertex data. (VBO = GL_ARRAY_BUFFER)
+        // Bind our buffer object to GL_ARRAY_BUFFER, thus making it a VBO.
         glBindBuffer(GL_ARRAY_BUFFER, vertexBufferObject);
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBufferObject);
 
+        // >> glBufferData creates a new data store for the buffer object currently bound
+        // >> to target. Any pre-existing data store is deleted. The new data store is created
+        // >> with the specified size in bytes and usage. If data is not NULL, the data
+        // >> store is initialized with data from this pointer. In its initial state, the
+        // >> new data store is not mapped, it has a NULL mapped pointer, and its mapped
+        // >> access is GL_READ_WRITE.
+        // Store the vertex data (position and colour) in the VBO.
         glBufferData(GL_ARRAY_BUFFER, vertexData, GL_STATIC_DRAW);
+        // Store the vertex index data in the IBO.
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, indexData, GL_STATIC_DRAW);
 
+        // Create a new shader program from the two files containing a vertex shader and a fragment shader.
         shaderProgram = ShaderLoader.loadShaderPair("res/shader.vs", "res/shader.fs");
         glUseProgram(shaderProgram);
 
+        // >> glEnableVertexAttribArray enables the generic vertex attribute array specified by index.
+        // >> glDisableVertexAttribArray disables the generic vertex attribute array specified by
+        // >> index. By default, all client-side capabilities are disabled, including all generic
+        // >> vertex attribute arrays. If enabled, the values in the generic vertex attribute array
+        // >> will be accessed and used for rendering when calls are made to vertex array commands
+        // >> such as glDrawArrays, glDrawElements, glDrawRangeElements, glMultiDrawElements, or glMultiDrawArrays.
+        // Enable the vertex position vertex attribute.
         glEnableVertexAttribArray(VERTEX_POSITION);
+        // Enable the vertex colour vertex attribute.;
         glEnableVertexAttribArray(VERTEX_COLOUR);
 
+        // >> glVertexAttribPointer and glVertexAttribIPointer specify the location and data format of the
+        // >> array of generic vertex attributes at index index to use when rendering. size specifies
+        // >> the number of components per attribute and must be 1, 2, 3, 4, or GL_BGRA. type specifies
+        // >> the data type of each component, and stride specifies the byte stride from one attribute
+        // >> to the next, allowing vertices and attributes to be packed into a single array or stored
+        // >> in separate arrays.
+        // Tell OpenGL where to find the vertex position data (inside the VBO).
         glVertexAttribPointer(VERTEX_POSITION, 2, GL_DOUBLE, false, 0, 0);
+        // Tell OpenGL where to find the vertex colour data (inside the VBO).
         glVertexAttribPointer(VERTEX_COLOUR, 3, GL_DOUBLE, false, 0, 8 * 4 * 2);
 
     }
@@ -140,10 +189,15 @@ public class CoreOpenGL {
     }
 
     private static void draw() {
+        // Clear the screen contents
         glClear(GL_COLOR_BUFFER_BIT);
-
-        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, 0);
-
+        // Draw the triangles as given to us by the IBO
+        glDrawElements(
+                GL_TRIANGLES, // The shape type: triangles, each consisting of three separate vertices
+                6, // The number of indices: 6, 3 per triangle (and there are two triangles)
+                GL_UNSIGNED_SHORT, // Data type, for OpenGL we always use GL_UNSIGNED_SHORT for DoubleBuffer (don't ask me why..)
+                0); // Index offset, we want all the data so we just set this to zero
+        // Refresh the GLFW window
         glfwSwapBuffers(windowID);
     }
 
